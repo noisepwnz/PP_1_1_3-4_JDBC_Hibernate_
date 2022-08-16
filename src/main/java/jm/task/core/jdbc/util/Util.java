@@ -1,35 +1,49 @@
 package jm.task.core.jdbc.util;
 
-import java.sql.*;
+import jm.task.core.jdbc.model.User;
+import org.hibernate.SessionFactory;
+
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.cfg.Environment;
+import org.hibernate.service.ServiceRegistry;
+
+
 import java.util.Properties;
 
 public class Util {
+    private static SessionFactory sessionFactory;
 
-    static private String URL = "jdbc:mysql://localhost:3306/kata_1_1_3";
-    static private String name = "root";
-    static private String password = "4815162342kik";
+    public static SessionFactory getSessionFactory() {
 
+        Configuration configuration = new Configuration();
+        if (sessionFactory == null) {
+            try {
+                Properties settings = new Properties();
+                settings.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
+                settings.put(Environment.URL, "jdbc:mysql://localhost:3306/kata_1_1_3?useSSL=false");
+                settings.put(Environment.USER, "root");
+                settings.put(Environment.PASS, "4815162342kik");
+                settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
+                settings.put(Environment.SHOW_SQL, "true");
+                settings.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
 
-    public static Connection getConnection() {
+                configuration.setProperties(settings);
 
-        Connection connection = null;
+                configuration.addAnnotatedClass(User.class);
 
-        try {
-            connection = DriverManager.getConnection(URL, name, password);
+                ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                        .applySettings(configuration.getProperties()).build();
 
-            if (!connection.isClosed()) {
-                System.out.println("Соединение  с БД установлено");
+                sessionFactory = configuration.buildSessionFactory(serviceRegistry);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-            if (connection.isClosed()) {
-                System.out.println("Cоединение с БД закрыто");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
-            return connection;
-        }
-
+        return sessionFactory;
     }
+}
+
+
 
 
